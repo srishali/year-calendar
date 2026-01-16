@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --past-color: #FFFFFF;     
+            --future-color: #1A1A1A; /* Dark Charcoal */
+            --current-color: #FF8C00;  
+            --text-color: #FFFFFF;
+        }
+
+        body, html {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .main-container {
+            width: 90vw;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15vh; /* Adjusted for better vertical centering */
+        }
+
+        #header {
+            text-align: center;
+            /* Anchors the clock to be 80% of the grid width */
+            width: 80%; 
+            margin-bottom: 40px;
+        }
+
+        #clock {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(2.5rem, 14vw, 4rem); 
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -3px; /* Tighter letter spacing for that premium look */
+            line-height: 0.9;
+        }
+
+        #date-info {
+            font-size: 1.1rem;
+            font-weight: 600;
+            opacity: 0.7;
+            margin-top: 15px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr); 
+            gap: 10px; /* Slightly larger gap for a cleaner look */
+            width: 100%;
+        }
+
+        .dot {
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
+            background-color: var(--future-color);
+            width: 100%;
+            transition: background-color 0.5s ease;
+        }
+
+        .past {
+            background-color: var(--past-color);
+        }
+
+        .current {
+            background-color: var(--current-color);
+            box-shadow: 0 0 25px var(--current-color);
+            animation: heartbeat 2.5s ease-in-out infinite;
+            border: none;
+        }
+
+        @keyframes heartbeat {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); } /* Very subtle scale to simulate pulse */
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div id="header">
+            <h1 id="clock">00:00:00</h1>
+            <div id="date-info">Loading...</div>
+        </div>
+
+        <div class="grid" id="calendar"></div>
+    </div>
+
+    <script>
+        const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        function updateDisplay() {
+            const now = new Date();
+            
+            // 1. Update Clock
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+            
+            // 2. Responsive Date Logic
+            const containerWidth = document.querySelector('.main-container').offsetWidth;
+            const dateEl = document.getElementById('date-info');
+            
+            // If screen is wider than 380px, show full text. Otherwise, use abbreviations.
+            if (containerWidth > 380) {
+                dateEl.textContent = `${daysFull[now.getDay()]} ${now.getDate()} ${monthsFull[now.getMonth()]}`;
+            } else {
+                dateEl.textContent = `${daysShort[now.getDay()]} ${now.getDate()} ${monthsShort[now.getMonth()]}`;
+            }
+        }
+
+        function buildGrid() {
+            const grid = document.getElementById('calendar');
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            const dayOfYear = Math.floor(diff / oneDay);
+
+            for (let i = 1; i <= 365; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                if (i < dayOfYear) dot.classList.add('past');
+                else if (i === dayOfYear) dot.classList.add('current');
+                grid.appendChild(dot);
+            }
+        }
+
+        buildGrid();
+        updateDisplay();
+        setInterval(updateDisplay, 1000);
+        // Re-check date format if user rotates screen
+        window.addEventListener('resize', updateDisplay);
+    </script>
+</body>
+</html>
